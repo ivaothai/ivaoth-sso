@@ -55,8 +55,9 @@ export class AppController {
         }
         // this.authRequestRepo.delete(await authRequest);
         await this.userRepo.save(user);
-        const webHookUrl =
-          `https://discordapp.com/api/webhooks/574992023195746370/${process.env['WEBHOOK_KEY']}`;
+        const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${
+          process.env['WEBHOOK_KEY']
+        }`;
         await axios.post(webHookUrl, {
           content: `!refreshUser ${user.discord_id}`,
         });
@@ -83,7 +84,16 @@ export class AppController {
   @Get('getUser')
   async getUser(@Query('discord_id') discord_id: string) {
     const user = this.userRepo.findOne({ discord_id });
-    return await user;
+    if (await user) {
+      return {
+        success: true,
+        ...user,
+      };
+    } else {
+      return {
+        success: false,
+      };
+    }
   }
 
   @Patch('setNickname')
