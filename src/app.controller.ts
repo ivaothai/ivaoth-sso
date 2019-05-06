@@ -112,6 +112,6 @@ export class AppController {
   @Get('allUsers')
   async getAllUsers() {
     const users = this.userRepo.find({});
-    return await users;
+    return (await users).map(u => u.discord_id);
   }
 }
