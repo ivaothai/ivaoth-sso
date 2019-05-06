@@ -87,7 +87,7 @@ export class AppController {
     if (await user) {
       return {
         success: true,
-        ...user,
+        ...(await user),
       };
     } else {
       return {
