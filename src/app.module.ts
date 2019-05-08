@@ -39,9 +39,6 @@ export class AppModule implements NestModule {
     consumer
       .apply(APIKeyMiddleware)
       .exclude('discord')
-      .forRoutes({
-        path: '*',
-        method: RequestMethod.ALL,
-      });
+      .forRoutes(AppController);
   }
 }
