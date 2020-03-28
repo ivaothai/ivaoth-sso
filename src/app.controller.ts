@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Post, Body, Patch } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import * as uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from './entities/AuthRequest';
 import { Repository } from 'typeorm';
 import { User } from './entities/User';
@@ -70,7 +70,7 @@ export class AppController {
 
   @Post('requestDiscordVerification')
   async requestDiscordVerification(@Body('discord_id') discord_id: string) {
-    const key = uuid();
+    const key = uuidv4();
     const authRequest = this.authRequestRepo.create({
       discord_id,
       key,
