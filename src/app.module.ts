@@ -25,8 +25,7 @@ import { CreateAdminTable1588883056001 } from './migrations/1588883056001-Create
         CreateNicknameOnUsers1557162358099,
         CreateAdminTable1588883056001
       ],
-      migrationsRun: true,
-      host: '172.23.144.1'
+      migrationsRun: true
     }),
     TypeOrmModule.forFeature([AuthRequest, User, Admin])
   ],
