@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from './entities/AuthRequest';
 import { Repository } from 'typeorm';
 import { User } from './entities/User';
+import { Admin } from './entities/Admin';
 
 interface UserData {
   vid: string;
@@ -24,6 +25,7 @@ export class AppController {
     @InjectRepository(AuthRequest)
     private authRequestRepo: Repository<AuthRequest>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Admin) private adminRepo: Repository<Admin>
   ) {}
 
   @Get('discord')
@@ -123,5 +125,20 @@ export class AppController {
     const users = this.userRepo.find({});
     return (await users).map((u) => u.discord_id);
   }
+
+  @Get('isAdmin')
+  async isAdmin(
+    @Query('discord_id') discord_id: string
+  ): Promise<{ isAdmin: boolean }> {
+    const admin = this.adminRepo.findOne({ discord_id });
+    if (await admin) {
+      return {
+        isAdmin: true
+      };
+    } else {
+      return {
+        isAdmin: false
+      };
+    }
   }
 }
