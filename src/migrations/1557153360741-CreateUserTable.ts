@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreateUserTable1557153360741 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<any> {
+  public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
         name: 'user',
@@ -11,64 +11,64 @@ export class CreateUserTable1557153360741 implements MigrationInterface {
             type: 'int',
             isPrimary: true,
             isGenerated: true,
-            generationStrategy: 'increment',
+            generationStrategy: 'increment'
           },
           {
             name: 'discord_id',
             type: 'text',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'vid',
             type: 'text',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'firstname',
             type: 'text',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'lastname',
             type: 'text',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'rating',
             type: 'int',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'ratingatc',
             type: 'int',
-            isNullable: true,
+            isNullable: true
           },
           {
             name: 'ratingpilot',
             type: 'int',
-            isNullable: true,
+            isNullable: true
           },
           {
             name: 'division',
             type: 'text',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'country',
             type: 'text',
-            isNullable: false,
+            isNullable: false
           },
           {
             name: 'staff',
             type: 'text',
-            isNullable: true,
-          },
-        ],
-      }),
+            isNullable: true
+          }
+        ]
+      })
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<any> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     queryRunner.dropTable('user');
   }
 }

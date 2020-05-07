@@ -29,37 +29,35 @@ export class AppController {
   @Get('discord')
   async discordAuth(
     @Query('IVAOTOKEN') ivaoToken: string,
-    @Query('key') key: string,
+    @Query('key') key: string
   ): Promise<string> {
     if (ivaoToken === 'error') {
       return 'IVAO Login API is not configured for this domain';
     } else {
       const authRequest = this.authRequestRepo.findOne({
         where: {
-          key,
-        },
+          key
+        }
       });
       if (await authRequest) {
         const ivaoApi = `https://login.ivao.aero/api.php?type=json&token=${ivaoToken}`;
         const userData = (await axios.get<UserData>(ivaoApi)).data;
         let user = await this.userRepo.findOne({
-          discord_id: (await authRequest).discord_id,
+          discord_id: (await authRequest).discord_id
         });
         if (!user) {
           user = this.userRepo.create({
             ...userData,
-            discord_id: (await authRequest).discord_id,
+            discord_id: (await authRequest).discord_id
           });
         } else {
           this.userRepo.merge(user, { ...userData });
         }
         // this.authRequestRepo.delete(await authRequest);
         await this.userRepo.save(user);
-        const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${
-          process.env['WEBHOOK_KEY']
-        }`;
+        const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${process.env['WEBHOOK_KEY']}`;
         await axios.post(webHookUrl, {
-          content: `!refreshUser ${user.discord_id}`,
+          content: `!refreshUser ${user.discord_id}`
         });
         return 'Success';
       } else {
@@ -69,29 +67,40 @@ export class AppController {
   }
 
   @Post('requestDiscordVerification')
-  async requestDiscordVerification(@Body('discord_id') discord_id: string) {
+  async requestDiscordVerification(
+    @Body('discord_id') discord_id: string
+  ): Promise<{
+    key: string;
+  }> {
     const key = uuidv4();
     const authRequest = this.authRequestRepo.create({
       discord_id,
-      key,
+      key
     });
     await this.authRequestRepo.save(authRequest);
     return {
-      key,
+      key
     };
   }
 
   @Get('getUser')
-  async getUser(@Query('discord_id') discord_id: string) {
+  async getUser(
+    @Query('discord_id') discord_id: string
+  ): Promise<
+    | {
+        success: false;
+      }
+    | ({ success: true } & User)
+  > {
     const user = this.userRepo.findOne({ discord_id });
     if (await user) {
       return {
         success: true,
-        ...(await user),
+        ...(await user)
       };
     } else {
       return {
-        success: false,
+        success: false
       };
     }
   }
@@ -99,19 +108,20 @@ export class AppController {
   @Patch('setNickname')
   async setNickname(
     @Body('discord_id') discord_id: string,
-    @Body('nickname') nickname: string,
-  ) {
+    @Body('nickname') nickname: string
+  ): Promise<{ success: boolean }> {
     const user = this.userRepo.findOne({ discord_id });
     (await user).customNickname = nickname;
     this.userRepo.save(await user);
     return {
-      success: true,
+      success: true
     };
   }
 
   @Get('allUsers')
-  async getAllUsers() {
+  async getAllUsers(): Promise<string[]> {
     const users = this.userRepo.find({});
-    return (await users).map(u => u.discord_id);
+    return (await users).map((u) => u.discord_id);
+  }
   }
 }

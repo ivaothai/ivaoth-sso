@@ -1,9 +1,4 @@
-import {
-  Module,
-  NestModule,
-  MiddlewareConsumer,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateAuthRequestTable1557146563440 } from './migrations/1557146563440-CreateAuthRequestTable';
@@ -27,12 +22,12 @@ import { APIKeyMiddleware } from './middlewares/APIKey.middleware';
         CreateUserTable1557153360741,
         CreateNicknameOnUsers1557162358099,
       ],
-      migrationsRun: true,
+      migrationsRun: true
     }),
     TypeOrmModule.forFeature([AuthRequest, User]),
   ],
   controllers: [AppController],
-  providers: [],
+  providers: []
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void | MiddlewareConsumer {

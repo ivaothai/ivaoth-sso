@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 @Injectable()
 export class APIKeyMiddleware implements NestMiddleware<Request, Response> {
-  use(req: Request, res: Response, next: () => void) {
+  use(req: Request, res: Response, next: () => void): void {
     if (
       (req.method.toUpperCase() === 'GET' &&
         req.query['apiKey'] === process.env['API_KEY']) ||
