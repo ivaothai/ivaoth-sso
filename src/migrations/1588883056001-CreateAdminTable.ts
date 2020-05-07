@@ -9,7 +9,8 @@ export class CreateAdminTable1588883056001 implements MigrationInterface {
           {
             name: 'discord_id',
             type: 'text',
-            isNullable: false
+            isNullable: false,
+            isPrimary: true
           }
         ]
       })
