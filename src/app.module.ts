@@ -7,8 +7,8 @@ import { User } from './entities/User';
 import { CreateUserTable1557153360741 } from './migrations/1557153360741-CreateUserTable';
 import { CreateNicknameOnUsers1557162358099 } from './migrations/1557162358099-CreateNicknameOnUsers';
 import { APIKeyMiddleware } from './middlewares/APIKey.middleware';
-import { CreateAdminTable } from './migrations/4-CreateAdminTable';
 import { Admin } from './entities/Admin';
+import { CreateAdminTable1588883056001 } from './migrations/1588883056001-CreateAdminTable';
 
 @Module({
   imports: [
@@ -23,9 +23,10 @@ import { Admin } from './entities/Admin';
         CreateAuthRequestTable1557146563440,
         CreateUserTable1557153360741,
         CreateNicknameOnUsers1557162358099,
-        CreateAdminTable
+        CreateAdminTable1588883056001
       ],
-      migrationsRun: true
+      migrationsRun: true,
+      host: '172.23.144.1'
     }),
     TypeOrmModule.forFeature([AuthRequest, User, Admin])
   ],
