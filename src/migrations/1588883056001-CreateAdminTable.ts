@@ -7,10 +7,16 @@ export class CreateAdminTable1588883056001 implements MigrationInterface {
         name: 'admin',
         columns: [
           {
+            name: 'id',
+            type: 'int',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment'
+          },
+          {
             name: 'discord_id',
             type: 'text',
-            isNullable: false,
-            isPrimary: true
+            isNullable: false
           }
         ]
       })

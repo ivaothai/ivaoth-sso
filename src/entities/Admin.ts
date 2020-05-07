@@ -1,7 +1,9 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('admin')
 export class Admin {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column()
   discord_id: string;
 }
