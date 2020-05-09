@@ -57,15 +57,19 @@ export class AppController {
         }
         // this.authRequestRepo.delete(await authRequest);
         await this.userRepo.save(user);
-        const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${process.env['WEBHOOK_KEY']}`;
-        await axios.post(webHookUrl, {
-          content: `!refreshUser ${user.discord_id}`
-        });
+        await this.notifyUpdate(user.discord_id);
         return 'Success';
       } else {
         return 'Error';
       }
     }
+  }
+
+  private async notifyUpdate(discord_id: string): Promise<void> {
+    const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${process.env['WEBHOOK_KEY']}`;
+    await axios.post(webHookUrl, {
+      content: `!refreshUser ${discord_id}`
+    });
   }
 
   @Post('requestDiscordVerification')
@@ -115,6 +119,7 @@ export class AppController {
     const user = this.userRepo.findOne({ discord_id });
     (await user).customNickname = nickname;
     this.userRepo.save(await user);
+    await this.notifyUpdate(discord_id);
     return {
       success: true
     };
