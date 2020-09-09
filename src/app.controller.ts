@@ -6,6 +6,7 @@ import { AuthRequest } from './entities/AuthRequest';
 import { Repository } from 'typeorm';
 import { User } from './entities/User';
 import { Admin } from './entities/Admin';
+import * as qs from 'qs';
 
 interface UserData {
   vid: string;
@@ -17,6 +18,14 @@ interface UserData {
   division: string;
   country: string;
   staff?: string;
+}
+
+interface TokenData {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string;
 }
 
 @Controller()
@@ -144,6 +153,118 @@ export class AppController {
       return {
         isAdmin: false
       };
+    }
+  }
+
+  @Get('discord-invite')
+  async discordInvite(
+    @Query('IVAOTOKEN') ivaoToken: string
+  ): Promise<
+    | {
+        url: string;
+        statusCode: number;
+      }
+    | string
+  > {
+    if (ivaoToken === 'error') {
+      return 'IVAO Login API is not configured for this domain';
+    } else {
+      const ivaoApi = `https://login.ivao.aero/api.php?type=json&token=${ivaoToken}`;
+      const userData = (await axios.get<UserData>(ivaoApi)).data;
+      const key = uuidv4();
+      const authRequest = this.authRequestRepo.create({
+        discord_id: userData.vid,
+        key
+      });
+      this.authRequestRepo.save(authRequest);
+      let user = await this.userRepo.findOne({
+        vid: userData.vid
+      });
+      if (!user) {
+        user = this.userRepo.create({
+          ...userData,
+          discord_id: ''
+        });
+      } else {
+        this.userRepo.merge(user, { ...userData });
+      }
+      const callbackUrl = new URL('https://sso.th.ivao.aero/discord-callback');
+
+      const authorizeUrl = new URL('https://discord.com/api/oauth2/authorize');
+      authorizeUrl.searchParams.set('response_type', 'code');
+      authorizeUrl.searchParams.set(
+        'client_id',
+        process.env['DISCORD_CLIENT_ID']
+      );
+      authorizeUrl.searchParams.set('scope', 'identify guilds.join');
+      authorizeUrl.searchParams.set('redirect_uri', callbackUrl.href);
+      authorizeUrl.searchParams.set('state', key);
+      return {
+        url: authorizeUrl.href,
+        statusCode: 302
+      };
+    }
+  }
+
+  @Get('discord-callback')
+  async discordCallback(
+    @Query('code') code: string,
+    @Query('state') state: string
+  ): Promise<string> {
+    const authRequest = this.authRequestRepo.findOne({
+      where: {
+        key: state
+      }
+    });
+    if (await authRequest) {
+      const user = await this.userRepo.findOne({
+        vid: (await authRequest).discord_id
+      });
+      if (!user) {
+        return 'Error';
+      }
+      const tokenUrl = 'https://discord.com/api/oauth2/token';
+      const tokenData = {
+        client_id: process.env['DISCORD_CLIENT_ID'],
+        client_secret: process.env['DISCORD_CLIENT_SECRET'],
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: 'https://sso.th.ivao.aero/discord-callback',
+        scope: 'identify guilds.join'
+      };
+      const tokenResponse = (
+        await axios.post<TokenData>(tokenUrl, qs.stringify(tokenData), {
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+          }
+        })
+      ).data;
+
+      const identityUrl = 'https://discord.com/api/users/@me';
+      const identityResponse = (
+        await axios.get<{ id: string }>(identityUrl, {
+          headers: {
+            authorization: `${tokenResponse.token_type} ${tokenResponse.access_token}`
+          }
+        })
+      ).data;
+
+      const joinGuildUrl = `https://discord.com/api/guilds/${process.env['DISCORD_GUILD_ID']}/members/${identityResponse.id}`;
+      axios.put(
+        joinGuildUrl,
+        {
+          access_token: tokenResponse.access_token,
+          nick: `${user.vid} ${user.firstname} ${user.lastname}`.substr(0, 32)
+        },
+        {
+          headers: {
+            authorization: `Bot ${process.env['DISCORD_BOT_TOKEN']}`
+          }
+        }
+      );
+      return 'Success';
+    } else {
+      return 'Error';
     }
   }
 }
