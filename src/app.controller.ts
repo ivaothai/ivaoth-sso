@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Post, Body, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Post,
+  Body,
+  Patch,
+  Redirect
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -157,6 +165,7 @@ export class AppController {
   }
 
   @Get('discord-invite')
+  @Redirect()
   async discordInvite(
     @Query('IVAOTOKEN') ivaoToken: string
   ): Promise<
