@@ -259,19 +259,27 @@ export class AppController {
       ).data;
 
       const joinGuildUrl = `https://discord.com/api/guilds/${process.env['DISCORD_GUILD_ID']}/members/${identityResponse.id}`;
-      axios.put(
-        joinGuildUrl,
-        {
-          access_token: tokenResponse.access_token,
-          nick: `${user.vid} ${user.firstname} ${user.lastname}`.substr(0, 32)
-        },
-        {
-          headers: {
-            authorization: `Bot ${process.env['DISCORD_BOT_TOKEN']}`
+      const joinGuildResponse = (
+        await axios.put(
+          joinGuildUrl,
+          {
+            access_token: tokenResponse.access_token,
+            nick: `${user.vid} ${user.firstname} ${user.lastname}`.substr(
+              0,
+              32
+            ),
+            roles: (process.env['DISCORD_ROLES'] as string)
+              .split(',')
+              .map((s) => s.trim())
+          },
+          {
+            headers: {
+              authorization: `Bot ${process.env['DISCORD_BOT_TOKEN']}`
+            }
           }
-        }
-      );
-      return 'Success';
+        )
+      ).data;
+      return joinGuildResponse;
     } else {
       return 'Error';
     }
