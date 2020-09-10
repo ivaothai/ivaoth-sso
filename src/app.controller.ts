@@ -197,6 +197,7 @@ export class AppController {
       } else {
         this.userRepo.merge(user, { ...userData });
       }
+      this.userRepo.save(user);
       const callbackUrl = new URL('https://sso.th.ivao.aero/discord-callback');
 
       const authorizeUrl = new URL('https://discord.com/api/oauth2/authorize');
