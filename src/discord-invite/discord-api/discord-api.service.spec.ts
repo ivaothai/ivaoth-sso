@@ -6,7 +6,7 @@ describe('DiscordApiService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DiscordApiService],
+      providers: [DiscordApiService]
     }).compile();
 
     service = module.get<DiscordApiService>(DiscordApiService);

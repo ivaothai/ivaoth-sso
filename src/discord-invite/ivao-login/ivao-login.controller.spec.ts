@@ -6,7 +6,7 @@ describe('IvaoLoginController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [IvaoLoginController],
+      controllers: [IvaoLoginController]
     }).compile();
 
     controller = module.get<IvaoLoginController>(IvaoLoginController);

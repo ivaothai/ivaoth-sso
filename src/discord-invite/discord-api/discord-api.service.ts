@@ -51,22 +51,24 @@ export class DiscordApiService {
     return tokenResponse;
   }
 
-  async tryKickUser(user: any) {
-    const removeUserUrl = `https://discord.com/api/guilds/${this.discordGuildId}/members/${user.discordUserId}`;
+  async tryKickUser(user: User): Promise<void> {
+    const removeUserUrl = `https://discord.com/api/guilds/${this.discordGuildId}/members/${user.discord_id}`;
     try {
       await axios.delete(removeUserUrl, {
         headers: {
           authorization: `Bot ${this.discordBotToken}`
         }
       });
-    } catch {}
+    } catch {
+      // Continues regardless of error
+    }
   }
 
   async joinUserToGuild(
     discordId: string,
     tokenResponse: TokenData,
     user: User
-  ) {
+  ): Promise<void> {
     const joinGuildUrl = `https://discord.com/api/guilds/${this.discordGuildId}/members/${discordId}`;
     await axios.put(
       joinGuildUrl,
