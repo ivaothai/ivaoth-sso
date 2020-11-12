@@ -45,6 +45,11 @@ export class AppController {
     @InjectRepository(Admin) private adminRepo: Repository<Admin>
   ) {}
 
+  /**
+   * (Old verification flow) Redirect URL from IVAO Login API
+   * @param ivaoToken Token from IVAO Login API
+   * @param key The key to match the Discord user
+   */
   @Get('discord')
   async discordAuth(
     @Query('IVAOTOKEN') ivaoToken: string,
@@ -82,6 +87,10 @@ export class AppController {
     }
   }
 
+  /**
+   * (Old verification flow) This function triggers the webhook for the bot to refresh the user.
+   * @param discord_id The user to update
+   */
   private async notifyUpdate(discord_id: string): Promise<void> {
     const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${process.env['WEBHOOK_KEY']}`;
     await axios.post(webHookUrl, {
@@ -89,6 +98,10 @@ export class AppController {
     });
   }
 
+  /**
+   * (Old verification flow) This endpoint is called by the bot to request a unique token that ties to a Discord user.
+   * @param discord_id The user that request the verification.
+   */
   @Post('requestDiscordVerification')
   async requestDiscordVerification(
     @Body('discord_id') discord_id: string
@@ -128,6 +141,11 @@ export class AppController {
     }
   }
 
+  /**
+   * (General) This update user's nickname in the server and trigger the bot to update the name.
+   * @param discord_id The Discord user
+   * @param nickname New nickname
+   */
   @Patch('setNickname')
   async setNickname(
     @Body('discord_id') discord_id: string,
@@ -142,12 +160,19 @@ export class AppController {
     };
   }
 
+  /**
+   * (General) Get all users in the database.
+   */
   @Get('allUsers')
   async getAllUsers(): Promise<string[]> {
     const users = this.userRepo.find({});
     return (await users).map((u) => u.discord_id);
   }
 
+  /**
+   * (General) This endpoint checks if the user is allowed to perform administrative actions.
+   * @param discord_id The Discord user
+   */
   @Get('isAdmin')
   async isAdmin(
     @Query('discord_id') discord_id: string
