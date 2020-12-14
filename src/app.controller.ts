@@ -1,12 +1,10 @@
-import { Body, Controller, Get, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { Admin } from './entities/Admin';
 import { AuthRequest } from './entities/AuthRequest';
 import { User } from './entities/User';
-import { UserData } from './interfaces';
 
 @Controller()
 export class AppController {
@@ -18,49 +16,7 @@ export class AppController {
   ) {}
 
   /**
-   * (Old verification flow) Redirect URL from IVAO Login API
-   * @param ivaoToken Token from IVAO Login API
-   * @param key The key to match the Discord user
-   */
-  @Get('discord')
-  async discordAuth(
-    @Query('IVAOTOKEN') ivaoToken: string,
-    @Query('key') key: string
-  ): Promise<string> {
-    if (ivaoToken === 'error') {
-      return 'IVAO Login API is not configured for this domain';
-    } else {
-      const authRequest = this.authRequestRepo.findOne({
-        where: {
-          key
-        }
-      });
-      if (await authRequest) {
-        const ivaoApi = `https://login.ivao.aero/api.php?type=json&token=${ivaoToken}`;
-        const userData = (await axios.get<UserData>(ivaoApi)).data;
-        let user = await this.userRepo.findOne({
-          discord_id: (await authRequest).discord_id
-        });
-        if (!user) {
-          user = this.userRepo.create({
-            ...userData,
-            discord_id: (await authRequest).discord_id
-          });
-        } else {
-          this.userRepo.merge(user, { ...userData });
-        }
-        // this.authRequestRepo.delete(await authRequest);
-        await this.userRepo.save(user);
-        await this.notifyUpdate(user.discord_id);
-        return 'Success';
-      } else {
-        return 'Error';
-      }
-    }
-  }
-
-  /**
-   * (Old verification flow) This function triggers the webhook for the bot to refresh the user.
+   * (General) This function triggers the webhook for the bot to refresh the user.
    * @param discord_id The user to update
    */
   private async notifyUpdate(discord_id: string): Promise<void> {
@@ -68,27 +24,6 @@ export class AppController {
     await axios.post(webHookUrl, {
       content: `!refreshUser ${discord_id}`
     });
-  }
-
-  /**
-   * (Old verification flow) This endpoint is called by the bot to request a unique token that ties to a Discord user.
-   * @param discord_id The user that request the verification.
-   */
-  @Post('requestDiscordVerification')
-  async requestDiscordVerification(
-    @Body('discord_id') discord_id: string
-  ): Promise<{
-    key: string;
-  }> {
-    const key = uuidv4();
-    const authRequest = this.authRequestRepo.create({
-      discord_id,
-      key
-    });
-    await this.authRequestRepo.save(authRequest);
-    return {
-      key
-    };
   }
 
   @Get('getUser')
@@ -125,7 +60,7 @@ export class AppController {
   ): Promise<{ success: boolean }> {
     const user = this.userRepo.findOne({ discord_id });
     (await user).customNickname = nickname;
-    this.userRepo.save(await user);
+    void this.userRepo.save(await user);
     await this.notifyUpdate(discord_id);
     return {
       success: true

@@ -29,6 +29,6 @@ export class CreateAuthRequestTable1557146563440 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    queryRunner.dropTable('auth_request');
+    await queryRunner.dropTable('auth_request');
   }
 }

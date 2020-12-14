@@ -6,11 +6,15 @@
   ],
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:prettier/recommended",
+    "prettier/@typescript-eslint"
   ],
   "rules": {
     "@typescript-eslint/camelcase": "off"
+  },
+  "parserOptions": {
+    "project": "./tsconfig.json"
   }
 }

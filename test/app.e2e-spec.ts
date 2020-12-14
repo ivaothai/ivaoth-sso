@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
 describe('AppController (e2e)', () => {
@@ -10,11 +10,14 @@ describe('AppController (e2e)', () => {
       imports: [AppModule]
     }).compile();
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     app = moduleFixture.createNestApplication();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await app.init();
   });
 
   it('/ (GET)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return request(app.getHttpServer())
       .get('/')
       .expect(200)

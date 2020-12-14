@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class CreateNicknameOnUsers1557162358099 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    queryRunner.addColumn(
+    await queryRunner.addColumn(
       'user',
       new TableColumn({
         name: 'customNickname',
@@ -13,6 +13,6 @@ export class CreateNicknameOnUsers1557162358099 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    queryRunner.dropColumn('user', 'customNickname');
+    await queryRunner.dropColumn('user', 'customNickname');
   }
 }

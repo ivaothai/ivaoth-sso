@@ -1,9 +1,20 @@
 import { NestMiddleware, Injectable } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
 
 @Injectable()
 export class APIKeyMiddleware implements NestMiddleware<Request, Response> {
-  use(req: Request, res: Response, next: () => void): void {
+  use(
+    req: Request<
+      ParamsDictionary,
+      Record<string, unknown>,
+      {
+        apiKey: string;
+      }
+    >,
+    res: Response,
+    next: () => void
+  ): void {
     if (
       (req.method.toUpperCase() === 'GET' &&
         req.query['apiKey'] === process.env['API_KEY']) ||
