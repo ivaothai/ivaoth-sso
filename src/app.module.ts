@@ -48,7 +48,10 @@ import { CreateOAuthStateTable1605167513355 } from './migrations/1605167513355-C
         process.env['DISCORD_THIS_DIVISION_STAFF_ROLE'],
       discordVerifiedUserRole: process.env['DISCORD_VERIFIED_USER_ROLE'],
       thisDivision: process.env['THIS_DIVISION'],
-      thisDivisionFirs: process.env['THIS_DIVISION_FIRS'].split(':')
+      thisDivisionFirs: process.env['THIS_DIVISION_FIRS'].split(':'),
+      discordBotRole: process.env['DISCORD_BOT_ROLE'],
+      discordUnverifiedUserRole: process.env['DISCORD_UNVERIFIED_USER_ROLE'],
+      discordManagedRoles: process.env['DISCORD_MANAGED_ROLES'].split(':')
     })
   ],
   controllers: [AppController],

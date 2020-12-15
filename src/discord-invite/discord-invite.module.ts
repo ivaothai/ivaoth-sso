@@ -6,6 +6,7 @@ import { IvaoLoginController } from './ivao-login/ivao-login.controller';
 import { DiscordOauthCallbackController } from './discord-oauth-callback/discord-oauth-callback.controller';
 import { DiscordApiService } from './discord-api/discord-api.service';
 import { UtilitiesService } from './utilities/utilities.service';
+import { UpdateMemberController } from './update-member/update-member.controller';
 
 interface DiscordInviteModuleConfig {
   discordClientId: string;
@@ -21,10 +22,17 @@ interface DiscordInviteModuleConfig {
   discordVerifiedUserRole: string;
   thisDivision: string;
   thisDivisionFirs: string[];
+  discordBotRole: string;
+  discordUnverifiedUserRole: string;
+  discordManagedRoles: string[];
 }
 
 @Module({
-  controllers: [IvaoLoginController, DiscordOauthCallbackController],
+  controllers: [
+    IvaoLoginController,
+    DiscordOauthCallbackController,
+    UpdateMemberController
+  ],
   providers: [DiscordApiService, UtilitiesService],
   imports: [TypeOrmModule.forFeature([User, OAuthState])]
 })
@@ -87,6 +95,18 @@ export class DiscordInviteModule {
         {
           provide: 'THIS_DIVISION_FIRS',
           useValue: config.thisDivisionFirs
+        },
+        {
+          provide: 'DISCORD_BOT_ROLE',
+          useValue: config.discordBotRole
+        },
+        {
+          provide: 'DISCORD_UNVERIFIED_USER_ROLE',
+          useValue: config.discordUnverifiedUserRole
+        },
+        {
+          provide: 'DISCORD_MANAGED_ROLES',
+          useValue: config.discordManagedRoles
         }
       ],
       controllers: [IvaoLoginController, DiscordOauthCallbackController]
