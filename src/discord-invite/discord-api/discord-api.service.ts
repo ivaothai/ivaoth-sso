@@ -4,31 +4,48 @@ import qs from 'qs';
 import { User } from '../../entities/User';
 import { TokenData } from '../../interfaces';
 import { UtilitiesService } from '../utilities/utilities.service';
+import * as Discord from 'discord.js';
 
 @Injectable()
 export class DiscordApiService {
+  private client: Discord.Client;
+  private guild: Promise<Discord.Guild>;
+
   constructor(
     private utils: UtilitiesService,
     @Inject('DISCORD_CLIENT_ID') private discordClientId: string,
     @Inject('DISCORD_CLIENT_SECRET') private discordClientSecret: string,
     @Inject('DISCORD_CALLBACK_URI') private discordCallbackUri: string,
-    @Inject('DISCORD_GUILD_ID') private discordGuildId: string,
-    @Inject('DISCORD_BOT_TOKEN') private discordBotToken: string
-  ) {}
+    @Inject('DISCORD_GUILD_ID') discordGuildId: string,
+    @Inject('DISCORD_BOT_TOKEN') discordBotToken: string,
+    @Inject('DISCORD_BOT_ROLE') private discordBotRole: string,
+    @Inject('DISCORD_MANAGED_ROLES') private discordManagedRoles: string[]
+  ) {
+    this.client = new Discord.Client();
+    this.client.token = discordBotToken;
+    this.guild = this.client.guilds.fetch(discordGuildId);
+  }
 
+  /**
+   * Get Discord User ID from an access token
+   * @param token_type Token type
+   * @param access_token Access token
+   * @experimental
+   */
   async getDiscordUserIdFromAccessToken(
     token_type: string,
     access_token: string
   ): Promise<string> {
-    const identityUrl = 'https://discord.com/api/users/@me';
-    const identityResponse = (
-      await axios.get<{ id: string }>(identityUrl, {
-        headers: {
-          authorization: `${token_type} ${access_token}`
-        }
-      })
-    ).data;
-    return identityResponse.id;
+    const tempClient = new Discord.Client({
+      _tokenType: token_type
+    } as Discord.ClientOptions);
+    tempClient.token = access_token;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return (
+      await ((tempClient as unknown) as {
+        api: { users: { '@me': { get: () => Promise<{ id: string }> } } };
+      }).api.users['@me'].get()
+    ).id;
   }
 
   async getTokens(code: string): Promise<TokenData> {
@@ -52,15 +69,9 @@ export class DiscordApiService {
   }
 
   async tryKickUser(user: User): Promise<void> {
-    const removeUserUrl = `https://discord.com/api/guilds/${this.discordGuildId}/members/${user.discord_id}`;
-    try {
-      await axios.delete(removeUserUrl, {
-        headers: {
-          authorization: `Bot ${this.discordBotToken}`
-        }
-      });
-    } catch {
-      // Continues regardless of error
+    const member = (await this.guild).members.fetch(user.discord_id);
+    if (await member) {
+      await (await member).kick();
     }
   }
 
@@ -69,24 +80,46 @@ export class DiscordApiService {
     tokenResponse: TokenData,
     user: User
   ): Promise<void> {
-    const joinGuildUrl = `https://discord.com/api/guilds/${this.discordGuildId}/members/${discordId}`;
-    await axios.put(
-      joinGuildUrl,
-      {
-        access_token: tokenResponse.access_token,
-        nick: this.utils.calculateNickname(
-          user.firstname,
-          user.lastname,
-          user.vid,
-          user.staff
-        ),
-        roles: this.utils.calculateRoles(user)
-      },
-      {
-        headers: {
-          authorization: `Bot ${this.discordBotToken}`
-        }
+    await (await this.guild).addMember(discordId, {
+      accessToken: tokenResponse.access_token,
+      nick: this.utils.calculateNickname(user, 'dummy'),
+      roles: this.utils.calculateRoles(user)
+    });
+  }
+
+  async fetchMember(discordId: string): Promise<void> {
+    await (await this.guild).members.fetch(discordId);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async updateUser(
+    discordUserId: string,
+    userData: User | null
+  ): Promise<void> {
+    const member = (await this.guild).members.cache.get(discordUserId);
+    if (member.roles.cache.every((r) => r.id !== this.discordBotRole)) {
+      const oldRoles = member.roles.cache.map((r) => r.id);
+      const newRoles = member.roles.cache
+        .filter((r) => !this.discordManagedRoles.includes(r.id))
+        .map((r) => r.id)
+        .concat(this.utils.calculateRoles(userData));
+      if (
+        oldRoles.filter((r) => !newRoles.includes(r)).length > 0 ||
+        newRoles.filter((r) => !oldRoles.includes(r)).length > 0
+      ) {
+        await member.roles.set(newRoles);
       }
-    );
+      const nickname = this.utils.calculateNickname(
+        userData,
+        member.user.username
+      );
+      if (member.nickname !== nickname) {
+        await member.setNickname(nickname);
+      }
+    }
+  }
+
+  async getAllMembersId(): Promise<string[]> {
+    return (await (await this.guild).members.fetch()).map((m) => m.user.id);
   }
 }
