@@ -8,7 +8,6 @@ import * as Discord from 'discord.js';
 
 @Injectable()
 export class DiscordApiService {
-  private client: Discord.Client;
   private guild: Promise<Discord.Guild>;
 
   constructor(
@@ -21,9 +20,16 @@ export class DiscordApiService {
     @Inject('DISCORD_BOT_ROLE') private discordBotRole: string,
     @Inject('DISCORD_MANAGED_ROLES') private discordManagedRoles: string[]
   ) {
-    this.client = new Discord.Client();
-    this.client.token = discordBotToken;
-    this.guild = this.client.guilds.fetch(discordGuildId);
+    const client = new Discord.Client();
+    void client.login(discordBotToken);
+    const clientReady = new Promise<void>((res) => {
+      client.on('ready', () => {
+        res();
+      });
+    });
+    this.guild = clientReady.then(() => {
+      return Promise.resolve(client.guilds.fetch(discordGuildId));
+    });
   }
 
   /**
