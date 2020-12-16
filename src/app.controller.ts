@@ -3,14 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Repository } from 'typeorm';
 import { Admin } from './entities/Admin';
-import { AuthRequest } from './entities/AuthRequest';
 import { User } from './entities/User';
 
 @Controller()
 export class AppController {
   constructor(
-    @InjectRepository(AuthRequest)
-    private authRequestRepo: Repository<AuthRequest>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Admin) private adminRepo: Repository<Admin>
   ) {}
