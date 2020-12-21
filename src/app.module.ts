@@ -1,5 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { resolve } from 'path';
 import { AppController } from './app.controller';
 import { DiscordInviteModule } from './discord-invite/discord-invite.module';
 import { Admin } from './entities/Admin';
@@ -15,6 +17,9 @@ import { RemoveAuthRequest1608128480347 } from './migrations/1608128480347-Remov
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: [resolve(__dirname, '..', '.env')]
+    }),
     TypeOrmModule.forRoot({
       type: 'mariadb',
       timezone: 'Z',
