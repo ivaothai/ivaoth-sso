@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Patch, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import axios from 'axios';
 import { Repository } from 'typeorm';
 import { Admin } from './entities/Admin';
 import { User } from './entities/User';
@@ -11,17 +10,6 @@ export class AppController {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Admin) private adminRepo: Repository<Admin>
   ) {}
-
-  /**
-   * (General) This function triggers the webhook for the bot to refresh the user.
-   * @param discord_id The user to update
-   */
-  private async notifyUpdate(discord_id: string): Promise<void> {
-    const webHookUrl = `https://discordapp.com/api/webhooks/574992023195746370/${process.env['WEBHOOK_KEY']}`;
-    await axios.post(webHookUrl, {
-      content: `!refreshUser ${discord_id}`
-    });
-  }
 
   @Get('getUser')
   async getUser(
@@ -43,25 +31,6 @@ export class AppController {
         success: false
       };
     }
-  }
-
-  /**
-   * (General) This update user's nickname in the server and trigger the bot to update the name.
-   * @param discord_id The Discord user
-   * @param nickname New nickname
-   */
-  @Patch('setNickname')
-  async setNickname(
-    @Body('discord_id') discord_id: string,
-    @Body('nickname') nickname: string
-  ): Promise<{ success: boolean }> {
-    const user = this.userRepo.findOne({ discord_id });
-    (await user).customNickname = nickname;
-    void this.userRepo.save(await user);
-    await this.notifyUpdate(discord_id);
-    return {
-      success: true
-    };
   }
 
   /**

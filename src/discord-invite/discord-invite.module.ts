@@ -7,6 +7,7 @@ import { DiscordOauthCallbackController } from './discord-oauth-callback/discord
 import { DiscordApiService } from './discord-api/discord-api.service';
 import { UtilitiesService } from './utilities/utilities.service';
 import { UpdateMemberController } from './update-member/update-member.controller';
+import { NicknameUpdateController } from './nickname-update/nickname-update.controller';
 
 interface DiscordInviteModuleConfig {
   discordClientId: string;
@@ -31,7 +32,8 @@ interface DiscordInviteModuleConfig {
   controllers: [
     IvaoLoginController,
     DiscordOauthCallbackController,
-    UpdateMemberController
+    UpdateMemberController,
+    NicknameUpdateController
   ],
   providers: [DiscordApiService, UtilitiesService],
   imports: [TypeOrmModule.forFeature([User, OAuthState])]
