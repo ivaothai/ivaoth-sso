@@ -48,7 +48,11 @@ export class DiscordOauthCallbackController {
       user.discord_id = discordId;
       await this.userRepository.save(user);
 
-      await this.apiService.joinUserToGuild(discordId, tokenResponse, user);
+      if (await this.apiService.isUserInGuild(discordId)) {
+        await this.apiService.updateUser(discordId, user);
+      } else {
+        await this.apiService.joinUserToGuild(discordId, tokenResponse, user);
+      }
 
       return 'Success';
     } else {

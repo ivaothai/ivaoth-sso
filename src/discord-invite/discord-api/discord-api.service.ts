@@ -128,4 +128,8 @@ export class DiscordApiService {
   async getAllMembersId(): Promise<string[]> {
     return (await (await this.guild).members.fetch()).map((m) => m.user.id);
   }
+
+  async isUserInGuild(discord_id: string): Promise<boolean> {
+    return !!(await (await this.guild).members.fetch(discord_id));
+  }
 }
