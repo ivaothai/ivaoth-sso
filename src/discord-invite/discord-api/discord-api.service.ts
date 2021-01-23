@@ -75,7 +75,7 @@ export class DiscordApiService {
   }
 
   async tryKickUser(user: User): Promise<void> {
-    const member = (await this.guild).members.fetch(user.discord_id);
+    const member = this.fetchMemberFromUserId(user.discord_id);
     if (await member) {
       await (await member).kick();
     }
@@ -130,9 +130,18 @@ export class DiscordApiService {
   }
 
   async isUserInGuild(discord_id: string): Promise<boolean> {
-    return (await this.guild).members.fetch(discord_id).then(
-      () => Promise.resolve(true),
-      () => Promise.resolve(false)
-    );
+    if (await this.fetchMemberFromUserId(discord_id)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private async fetchMemberFromUserId(
+    discord_id: string
+  ): Promise<Discord.GuildMember | null> {
+    return (await this.guild).members
+      .fetch(discord_id)
+      .catch(() => null as null);
   }
 }
