@@ -130,6 +130,9 @@ export class DiscordApiService {
   }
 
   async isUserInGuild(discord_id: string): Promise<boolean> {
-    return !!(await (await this.guild).members.fetch(discord_id));
+    return (await this.guild).members.fetch(discord_id).then(
+      () => Promise.resolve(true),
+      () => Promise.resolve(false)
+    );
   }
 }
