@@ -27,7 +27,7 @@
     "@nestjs/platform-express": "7.6.15",
     "@nestjs/typeorm": "7.1.5",
     "axios": "0.21.1",
-    "discord.js": "12.5.1",
+    "discord.js": "12.5.3",
     "mysql2": "2.2.5",
     "qs": "6.10.1",
     "reflect-metadata": "0.1.13",
