@@ -34,7 +34,7 @@
     "rimraf": "3.0.2",
     "rxjs": "6.6.7",
     "title-case": "3.0.3",
-    "typeorm": "0.2.31",
+    "typeorm": "0.2.32",
     "uuid": "8.3.2"
   },
   "devDependencies": {
