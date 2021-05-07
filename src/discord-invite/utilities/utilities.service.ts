@@ -82,7 +82,7 @@ export class UtilitiesService {
 
       const baseName = (user.customNickname
         ? user.customNickname
-        : `${titleCase(user.firstname)} ${titleCase(user.lastname)}`
+        : `${titleCase(user.firstname)}`
       ).substr(0, 32 - prefix.length - suffix.length);
       return prefix + baseName + suffix;
     } else {
