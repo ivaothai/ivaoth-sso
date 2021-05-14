@@ -14,6 +14,7 @@ import { CreateNicknameOnUsers1557162358099 } from './migrations/1557162358099-C
 import { CreateAdminTable1588883056001 } from './migrations/1588883056001-CreateAdminTable';
 import { CreateOAuthStateTable1605167513355 } from './migrations/1605167513355-CreateOAuthStateTable';
 import { RemoveAuthRequest1608128480347 } from './migrations/1608128480347-RemoveAuthRequest';
+import { AddConsentTime1621007020175 } from './migrations/1621007020175-AddConsentTime';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { RemoveAuthRequest1608128480347 } from './migrations/1608128480347-Remov
         CreateNicknameOnUsers1557162358099,
         CreateAdminTable1588883056001,
         CreateOAuthStateTable1605167513355,
-        RemoveAuthRequest1608128480347
+        RemoveAuthRequest1608128480347,
+        AddConsentTime1621007020175
       ],
       migrationsRun: true
     }),
