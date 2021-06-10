@@ -8,6 +8,7 @@ import { DiscordApiService } from './discord-api/discord-api.service';
 import { UtilitiesService } from './utilities/utilities.service';
 import { UpdateMemberController } from './update-member/update-member.controller';
 import { NicknameUpdateController } from './nickname-update/nickname-update.controller';
+import { SubmitConsentController } from './submit-consent/submit-consent.controller';
 
 interface DiscordInviteModuleConfig {
   discordClientId: string;
@@ -33,7 +34,8 @@ interface DiscordInviteModuleConfig {
     IvaoLoginController,
     DiscordOauthCallbackController,
     UpdateMemberController,
-    NicknameUpdateController
+    NicknameUpdateController,
+    SubmitConsentController
   ],
   providers: [DiscordApiService, UtilitiesService],
   imports: [TypeOrmModule.forFeature([User, OAuthState])]
