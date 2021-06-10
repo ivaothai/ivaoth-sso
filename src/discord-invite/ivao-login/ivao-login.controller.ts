@@ -1,6 +1,7 @@
-import { Controller, Get, Inject, Query, Redirect } from '@nestjs/common';
+import { Controller, Get, Inject, Query, Redirect, Res } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
+import { Response } from 'express';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { OAuthState } from '../../entities/OAuthState';
@@ -23,9 +24,9 @@ export class IvaoLoginController {
    * @param ivaoToken The token from IVAO Login API
    */
   @Get()
-  @Redirect()
   async discordInvite(
-    @Query('IVAOTOKEN') ivaoToken: string
+    @Query('IVAOTOKEN') ivaoToken: string,
+    @Res() res: Response
   ): Promise<{
     url: string;
     statusCode: number;
@@ -54,24 +55,34 @@ export class IvaoLoginController {
       }
       await this.userRepository.save(user);
 
-      const key = uuidv4();
+      if (user.consentTime) {
+        const key = uuidv4();
 
-      const state = this.oauthStateRepository.create({
-        state: key,
-        user
-      });
-      await this.oauthStateRepository.save(state);
+        const state = this.oauthStateRepository.create({
+          state: key,
+          user
+        });
+        await this.oauthStateRepository.save(state);
 
-      const authorizeUrl = new URL('https://discord.com/api/oauth2/authorize');
-      authorizeUrl.searchParams.set('response_type', 'code');
-      authorizeUrl.searchParams.set('client_id', this.discordClientId);
-      authorizeUrl.searchParams.set('scope', 'identify guilds.join');
-      authorizeUrl.searchParams.set('redirect_uri', this.discordCallbackUri);
-      authorizeUrl.searchParams.set('state', key);
-      return {
-        url: authorizeUrl.href,
-        statusCode: 302
-      };
+        const authorizeUrl = new URL(
+          'https://discord.com/api/oauth2/authorize'
+        );
+        authorizeUrl.searchParams.set('response_type', 'code');
+        authorizeUrl.searchParams.set('client_id', this.discordClientId);
+        authorizeUrl.searchParams.set('scope', 'identify guilds.join');
+        authorizeUrl.searchParams.set(
+          'redirect_uri',
+          this.discordCallbackUri
+        );
+        authorizeUrl.searchParams.set('state', key);
+        // return {
+        //   url: authorizeUrl.href,
+        //   statusCode: 302
+        // };
+        res.redirect(authorizeUrl.href);
+      } else {
+        res.render('consent');
+      }
     }
   }
 }
