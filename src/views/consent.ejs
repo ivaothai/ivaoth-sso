@@ -59,10 +59,10 @@
       </p>
       <br />
       <form action="/submit-consent" method="post">
-        <input type="checkbox" name="consent" /> I agree to the declaration of
+        <input type="checkbox" name="consent" value="consent" /> I agree to the declaration of
         consent and that processing can be carried out as appropiate.
         <br />
-        <input type="hidden" name="_csrf" value="" />
+        <input type="hidden" name="_token" value="<%= vid %>" />
         <input type="submit" value="Submit" class="px-5 py-2" />
       </form>
     </div>

@@ -59,6 +59,7 @@ import { AddConsentTime1621007020175 } from './migrations/1621007020175-AddConse
       thisDivisionFirs: process.env['THIS_DIVISION_FIRS'].split(':'),
       discordBotRole: process.env['DISCORD_BOT_ROLE'],
       discordUnverifiedUserRole: process.env['DISCORD_UNVERIFIED_USER_ROLE'],
+      discordUnconsentedRole: process.env['DISCORD_UNCONSENTED_ROLE'],
       discordManagedRoles: process.env['DISCORD_MANAGED_ROLES'].split(':')
     })
   ],

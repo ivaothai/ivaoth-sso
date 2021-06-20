@@ -1,5 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { titleCase } from 'title-case';
+import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { OAuthState } from '../../entities/OAuthState';
 import { User } from '../../entities/User';
 
 @Injectable()
@@ -18,38 +22,48 @@ export class UtilitiesService {
     private discordVerifiedUserRole: string,
     @Inject('DISCORD_UNVERIFIED_USER_ROLE')
     private discordUnverifiedUserRole: string,
+    @Inject('DISCORD_UNCONSENTED_ROLE')
+    private discordUnconsentedRole: string,
     @Inject('THIS_DIVISION') private thisDivision: string,
-    @Inject('THIS_DIVISION_FIRS') private thisDivisionFirs: string[]
+    @Inject('THIS_DIVISION_FIRS') private thisDivisionFirs: string[],
+    @InjectRepository(OAuthState)
+    private oauthStateRepository: Repository<OAuthState>,
+    @Inject('DISCORD_CLIENT_ID') private discordClientId: string,
+    @Inject('DISCORD_CALLBACK_URI') private discordCallbackUri: string
   ) {}
 
   calculateRoles(user: User | null): string[] {
     if (user) {
-      const roles = new Set<string>();
-      roles.add(this.discordVerifiedUserRole);
-      if (user.division === this.thisDivision) {
-        roles.add(this.discordThisDivisionRole);
-      } else {
-        roles.add(this.discordOtherDivisionRole);
-      }
-      if (user.staff) {
-        const positions = user.staff.split(':').map((s) => s.trim());
-        for (const position of positions) {
-          if (position.includes('-')) {
-            const firstPart = position.split('-')[0];
-            if (
-              firstPart === this.thisDivision ||
-              this.thisDivisionFirs.includes(firstPart)
-            ) {
-              roles.add(this.discordThisDivisionStaffRole);
+      if (user.consentTime) {
+        const roles = new Set<string>();
+        roles.add(this.discordVerifiedUserRole);
+        if (user.division === this.thisDivision) {
+          roles.add(this.discordThisDivisionRole);
+        } else {
+          roles.add(this.discordOtherDivisionRole);
+        }
+        if (user.staff) {
+          const positions = user.staff.split(':').map((s) => s.trim());
+          for (const position of positions) {
+            if (position.includes('-')) {
+              const firstPart = position.split('-')[0];
+              if (
+                firstPart === this.thisDivision ||
+                this.thisDivisionFirs.includes(firstPart)
+              ) {
+                roles.add(this.discordThisDivisionStaffRole);
+              } else {
+                roles.add(this.discordOtherDivisionStaffRole);
+              }
             } else {
-              roles.add(this.discordOtherDivisionStaffRole);
+              roles.add(this.discordHQStaffRole);
             }
-          } else {
-            roles.add(this.discordHQStaffRole);
           }
         }
+        return Array.from<string>(roles);
+      } else {
+        return [this.discordUnconsentedRole];
       }
-      return Array.from<string>(roles);
     } else {
       return [this.discordUnverifiedUserRole];
     }
@@ -57,36 +71,59 @@ export class UtilitiesService {
 
   calculateNickname(user: User | null, discordUsername: string): string {
     if (user) {
-      const eligiblePositions = user.staff
-        ? user.staff
-            .split(':')
-            .map((s) => s.trim())
-            .filter((s) => {
-              return s.includes('-');
-            })
-            .filter((s) => {
-              const firstPart = s.split('-')[0];
-              return (
-                firstPart === this.thisDivision ||
-                this.thisDivisionFirs.includes(firstPart)
-              );
-            })
-        : [];
-      const prefix =
-        eligiblePositions.length > 0
-          ? `${eligiblePositions.join('/')} `
-          : `${user.vid} `;
+      if (user.consentTime) {
+        const eligiblePositions = user.staff
+          ? user.staff
+              .split(':')
+              .map((s) => s.trim())
+              .filter((s) => {
+                return s.includes('-');
+              })
+              .filter((s) => {
+                const firstPart = s.split('-')[0];
+                return (
+                  firstPart === this.thisDivision ||
+                  this.thisDivisionFirs.includes(firstPart)
+                );
+              })
+          : [];
+        const prefix =
+          eligiblePositions.length > 0
+            ? `${eligiblePositions.join('/')} `
+            : `${user.vid} `;
 
-      const suffix =
-        user.division === this.thisDivision ? '' : ` - ${user.division}`;
+        const suffix =
+          user.division === this.thisDivision ? '' : ` - ${user.division}`;
 
-      const baseName = (user.customNickname
-        ? user.customNickname
-        : `${titleCase(user.firstname)}`
-      ).substr(0, 32 - prefix.length - suffix.length);
-      return prefix + baseName + suffix;
+        const baseName = (
+          user.customNickname
+            ? user.customNickname
+            : `${titleCase(user.firstname)}`
+        ).substr(0, 32 - prefix.length - suffix.length);
+        return prefix + baseName + suffix;
+      } else {
+        return `[UNCONSENTED] ${discordUsername}`.substr(0, 32);
+      }
     } else {
       return `[UNVERIFIED] ${discordUsername}`.substr(0, 32);
     }
+  }
+
+  async getDiscordOauthUrl(user: User) {
+    const key = uuidv4();
+
+    const state = this.oauthStateRepository.create({
+      state: key,
+      user
+    });
+    await this.oauthStateRepository.save(state);
+
+    const authorizeUrl = new URL('https://discord.com/api/oauth2/authorize');
+    authorizeUrl.searchParams.set('response_type', 'code');
+    authorizeUrl.searchParams.set('client_id', this.discordClientId);
+    authorizeUrl.searchParams.set('scope', 'identify guilds.join');
+    authorizeUrl.searchParams.set('redirect_uri', this.discordCallbackUri);
+    authorizeUrl.searchParams.set('state', key);
+    return authorizeUrl.href;
   }
 }

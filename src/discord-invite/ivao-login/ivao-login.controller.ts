@@ -1,22 +1,21 @@
-import { Controller, Get, Inject, Query, Redirect, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Response } from 'express';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { OAuthState } from '../../entities/OAuthState';
 import { User } from '../../entities/User';
 import { UserData } from '../../interfaces';
+import { UtilitiesService } from '../utilities/utilities.service';
 
 @Controller('discord-invite')
 export class IvaoLoginController {
   constructor(
-    @Inject('DISCORD_CLIENT_ID') private discordClientId: string,
-    @Inject('DISCORD_CALLBACK_URI') private discordCallbackUri: string,
     @InjectRepository(OAuthState)
     private oauthStateRepository: Repository<OAuthState>,
     @InjectRepository(User)
-    private userRepository: Repository<User>
+    private userRepository: Repository<User>,
+    private utilitiesService: UtilitiesService
   ) {}
 
   /**
@@ -56,32 +55,11 @@ export class IvaoLoginController {
       await this.userRepository.save(user);
 
       if (user.consentTime) {
-        const key = uuidv4();
-
-        const state = this.oauthStateRepository.create({
-          state: key,
-          user
-        });
-        await this.oauthStateRepository.save(state);
-
-        const authorizeUrl = new URL(
-          'https://discord.com/api/oauth2/authorize'
-        );
-        authorizeUrl.searchParams.set('response_type', 'code');
-        authorizeUrl.searchParams.set('client_id', this.discordClientId);
-        authorizeUrl.searchParams.set('scope', 'identify guilds.join');
-        authorizeUrl.searchParams.set(
-          'redirect_uri',
-          this.discordCallbackUri
-        );
-        authorizeUrl.searchParams.set('state', key);
-        // return {
-        //   url: authorizeUrl.href,
-        //   statusCode: 302
-        // };
-        res.redirect(authorizeUrl.href);
+        res.redirect(await this.utilitiesService.getDiscordOauthUrl(user));
       } else {
-        res.render('consent');
+        res.render('consent', {
+          vid: user.vid
+        });
       }
     }
   }

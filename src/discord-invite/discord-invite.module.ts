@@ -26,6 +26,7 @@ interface DiscordInviteModuleConfig {
   thisDivisionFirs: string[];
   discordBotRole: string;
   discordUnverifiedUserRole: string;
+  discordUnconsentedRole: string;
   discordManagedRoles: string[];
 }
 
@@ -107,6 +108,10 @@ export class DiscordInviteModule {
         {
           provide: 'DISCORD_UNVERIFIED_USER_ROLE',
           useValue: config.discordUnverifiedUserRole
+        },
+        {
+          provide: 'DISCORD_UNCONSENTED_ROLE',
+          useValue: config.discordUnconsentedRole
         },
         {
           provide: 'DISCORD_MANAGED_ROLES',
