@@ -23,16 +23,14 @@ export class SubmitConsentController {
       return;
     }
 
-    let user = await this.userRepository.findOne({
+    let user = await this.userRepository.find({
       where: {
         vid
       }
     });
 
-    user = this.userRepository.merge(user, { consentTime: new Date() });
+    await this.userRepository.update({ vid }, { consentTime: new Date() });
 
-    await this.userRepository.save(user);
-
-    res.redirect(await this.utilitiesService.getDiscordOauthUrl(user));
+    res.redirect(await this.utilitiesService.getDiscordOauthUrl(user[0]));
   }
 }
